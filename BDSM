@@ -1,0 +1,426 @@
+**TRIGGER**
+
+AIM: To write a program on PL/SQL Trigger
+Program:
+SQL> CREATE OR REPLACE TRIGGER display_salary_changes
+BEFORE DELETE OR INSERT OR UPDATE ON emp
+FOR EACH ROW
+WHEN (NEW.ID > 0)
+DECLARE
+sal_diff number;
+BEGIN
+sal_diff := :NEW.salary - :OLD.salary;
+dbms_output.put_line('Old salary: ' || :OLD.salary);
+dbms_output.put_line('New salary: ' || :NEW.salary);
+dbms_output.put_line('Salary difference: ' || sal_diff);
+END;
+/
+
+Trigger created.
+SQL> DECLARE
+total_rows number(2);
+BEGIN
+UPDATE emp
+SET salary = salary + 5000;
+IF sql%notfound THEN
+
+dbms_output.put_line('no customers updated');
+ELSIF sql%found THEN
+total_rows := sql%rowcount;
+dbms_output.put_line( total_rows || ' customers updated ');
+END IF;
+END;
+/
+Old salary: 155000
+New salary: 160000
+Salary difference: 5000
+Old salary: 205000
+New salary: 210000
+Salary difference: 5000
+Old salary: 45630
+New salary: 50630
+Salary difference: 5000
+3 customers updated
+
+PL/SQL procedure successfully completed.
+-------------------------------------------------------------
+**Exception Handling**
+
+SQL> DECLARE
+c_id emp.id%type:=10;
+c_name emp.name%type;
+c_addr emp.address%type;
+begin
+SELECT name, address into c_name,c_addr FROM emp where id=c_id;
+dbms_output.put_line('Name:'||c_name);
+dbms_output.put_line('Address:'||c_addr);
+exception
+when no_data_found then dbms_output.put_line('no such customer');
+when others then dbms_output.put_line('error');
+end;
+/
+no such customer
+
+PL/SQL procedure successfully completed.
+SQL> declare
+c_id emp.id%type:=30;
+c_name emp.name%type;
+c_addr emp.address%type;
+
+begin
+SELECT name, address into c_name,c_addr FROM emp where id=c_id;
+dbms_output.put_line('Name:'||c_name);
+dbms_output.put_line('Address:'||c_addr);
+exception
+when no_data_found then dbms_output.put_line('no such customer');
+when others then dbms_output.put_line('error');
+end;
+/
+Name:sai
+Address:mumbai
+
+PL/SQL procedure successfully completed.
+----------------------------------------------
+**CURSORS**
+
+SQL> DECLARE
+total_rows number(2);
+BEGIN
+UPDATE emp
+SET salary = salary + 5000;
+IF sql%notfound THEN
+dbms_output.put_line('no customers updated');
+ELSIF sql%found THEN
+total_rows := sql%rowcount;
+dbms_output.put_line( total_rows || ' customers updated ');
+END IF;
+END;
+/
+3 customers updated
+
+PL/SQL procedure successfully completed.
+
+SQL> select * from emp;
+
+ID NAME AGE ADDRESS SALARY
+---------- ---------- ---------- ---------- ----------
+
+30 sai 26 mumbai 155000
+40 sam 27 hyderabad 205000
+50 tom 29 pune 45630
+EXPLICIT CURSOR
+SQL> DECLARE
+c_id emp.id%type;
+c_name emp.name%type;
+c_addr emp.address%type;
+CURSOR c_emp is
+SELECT id, name, address FROM emp;
+begin
+open c_emp;
+loop
+FETCH c_emp into c_id, c_name, c_addr;
+EXIT WHEN c_emp%notfound;
+dbms_output.put_line(c_id || ' ' || c_name || ' ' || c_addr);
+end loop;
+close c_emp;
+end;
+/
+30 sai mumbai
+40 sam hyderabad
+50 tom pune
+
+PL/SQL procedure successfully completed.
+-------------------------------------------------
+**FUNCTIONS**
+
+SQL> create or replace function adder(n1 in number, n2 in number)
+2 return number
+3 is
+4 n3 number(8);
+5 begin
+6 n3 :=n1+n2;
+7 return n3;
+8 end;
+9 /
+
+Function created.
+
+SQL> DECLARE
+2 n3 number(2);
+3 BEGIN
+4 n3 := adder(11,22);
+5 dbms_output.put_line('Addition is: ' || n3);
+6 END;
+7 /
+Addition is: 33
+
+PL/SQL procedure successfully completed.
+SQL> DECLARE
+2 a number;
+3 b number;
+4 c number;
+5 FUNCTION findMax(x IN number, y IN number)
+6 RETURN number
+7 IS
+8 z number;
+9 BEGIN
+10 IF x > y THEN
+11 z:= x;
+12 ELSE
+13 Z:= y;
+14 END IF;
+15
+16 RETURN z;
+17 END;
+18 BEGIN
+19 a:= 23;
+20 b:= 45;
+21
+22 c := findMax(a, b);
+23 dbms_output.put_line(' Maximum of (23,45): ' || c);
+
+24 END;
+25 /
+Maximum of (23,45): 45
+
+PL/SQL procedure successfully completed.
+SQL> select * from emp;
+
+ID NAME AGE ADDRESS SALARY
+---------- ---------- ---------- ---------- ----------
+30 sai 26 mumbai 150000
+40 sam 27 hyderabad 200000
+50 tom 29 pune 40630
+
+SQL> create or replace function totalemp
+2 return number is
+3 total number(10):=0;
+4 begin
+5 select count(*) into total from emp;
+6 return total;
+7 end;
+8 /
+
+Function created.
+
+SQL> declare
+2 c number(20);
+3 begin
+4 c:=totalemp();
+5 dbms_output.put_line('Total no of emp:'||c);
+6 end;
+7 /
+Total no of emp:3
+
+PL/SQL procedure successfully completed.
+SQL> DECLARE
+2 num number;
+3 factorial number;
+4
+5 FUNCTION fact(x number)
+6 RETURN number
+7 IS
+8 f number;
+9 BEGIN
+10 IF x=0 THEN
+11 f := 1;
+12 ELSE
+13 f := x * fact(x-1);
+14 END IF;
+
+15 RETURN f;
+16 END;
+17
+18 BEGIN
+19 num:= 6;
+20 factorial := fact(num);
+21 dbms_output.put_line(' Factorial '|| num || ' is ' || factorial);
+22 END;
+23 /
+Factorial 6 is 720
+
+PL/SQL procedure successfully completed.
+--------------------------------------------------
+**PROCEDURE**
+
+create table proc(id number(10),name varchar(10));
+
+Table created.
+SQL> create or replace procedure "INSERTUSER"
+(id IN NUMBER,
+name IN VARCHAR2)
+is
+begin
+insert into proc values(id,name);
+end;
+/
+
+Procedure created.
+SQL> BEGIN
+insertuser(101,'Rahul');
+dbms_output.put_line('record inserted successfully');
+END;
+/
+record inserted successfully
+
+PL/SQL procedure successfully completed.
+
+SQL> select * from proc;
+
+ID NAME
+---------- ----------
+101 Rahul
+---------------------------------------------------------
+
+**CONDITIONAL AND ITERATIVE**
+
+SQL> declare
+2 a integer:=10;
+3 begin
+4 dbms_output.put_line(a);
+5 end;
+6 /
+10
+
+PL/SQL procedure successfully completed.
+SQL> declare
+2 a varchar(10):='hello';
+3 begin
+4 dbms_output.put_line(a);
+5 end;
+6 /
+hello
+
+PL/SQL procedure successfully completed.
+SQL> declare
+2 a integer:=10;
+
+3 begin
+4 dbms_output.put_line('value of a:'||a);
+5 end;
+6 /
+value of a:10
+
+PL/SQL procedure successfully completed.
+SQL> declare
+2 pi constant number:=3.14;
+3 begin
+4 dbms_output.put_line(pi);
+5 end;
+6 /
+3.14
+
+PL/SQL procedure successfully completed.
+SQL> declare
+2 a integer:=10;
+3 b integer:=20;
+4 c integer;
+5 begin
+6 c:=a+b;
+7 dbms_output.put_line(c);
+8 end;
+
+9 /
+30
+IF-ELSE
+PL/SQL procedure successfully completed.
+SQL> declare
+2 a integer:=30;
+3 begin
+4 if(a<20) then
+5 dbms_output.put_line('a is less than 20');
+6 else
+7 dbms_output.put_line('a is not less than 20');
+8 end if;
+9 end;
+10 /
+a is not less than 20
+CASE STATEMENT
+PL/SQL procedure successfully completed.
+SQL> DECLARE
+2 grade char(1) := 'A';
+3 BEGIN
+4 CASE grade
+5 when 'A' then dbms_output.put_line('Excellent');
+6 when 'B' then dbms_output.put_line('Very good');
+7 when 'C' then dbms_output.put_line('Good');
+
+8 when 'D' then dbms_output.put_line('Average');
+9 when 'F' then dbms_output.put_line('Passed with Grace');
+10 else dbms_output.put_line('Failed');
+11 END CASE;
+12 END;
+13 /
+Excellent
+LOOP
+PL/SQL procedure successfully completed.
+SQL> DECLARE
+2 i NUMBER := 1;
+3 BEGIN
+4 LOOP
+5 EXIT WHEN i>10;
+6 DBMS_OUTPUT.PUT_LINE(i);
+7 i := i+1;
+8 END LOOP;
+9 END;
+10 /
+1
+2
+3
+4
+5
+
+6
+7
+8
+9
+10
+WHILE LOOP
+PL/SQL procedure successfully completed.
+SQL> DECLARE
+2 i INTEGER := 1;
+3 BEGIN
+4 WHILE i <= 10 LOOP
+5 DBMS_OUTPUT.PUT_LINE(i);
+6 i := i+1;
+7 END LOOP;
+8 END;
+9 /
+1
+2
+3
+4
+5
+6
+7
+8
+
+9
+10
+FOR LOOP
+PL/SQL procedure successfully completed.
+SQL> DECLARE
+2 VAR1 NUMBER;
+3 BEGIN
+4 VAR1:=10;
+5 FOR VAR2 IN 1..10
+6 LOOP
+7 DBMS_OUTPUT.PUT_LINE (VAR1*VAR2);
+8 END LOOP;
+9 END;
+10 /
+10
+20
+30
+40
+50
+60
+70
+80
+90
+100
+
+PL/SQL procedure successfully completed.
+
+
+
