@@ -108,7 +108,7 @@ ID NAME AGE ADDRESS SALARY
 30 sai 26 mumbai 155000
 40 sam 27 hyderabad 205000
 50 tom 29 pune 45630
-EXPLICIT CURSOR
+____________EXPLICIT CURSOR___________
 SQL> DECLARE
 c_id emp.id%type;
 c_name emp.name%type;
